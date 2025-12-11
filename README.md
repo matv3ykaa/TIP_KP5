@@ -71,3 +71,10 @@ curl -X POST http://localhost:3000/api/submit \
 ```
 curl http://localhost:3000/api/results
 ```
+
+## **Пример работы**
+
+<img width="1440" height="900" alt="image" src="https://github.com/user-attachments/assets/36f711f5-c1b5-475d-b288-174af32c8a5c" />
+
+<img width="1440" height="900" alt="image" src="https://github.com/user-attachments/assets/4eea64cc-9058-42b3-ae4c-3027f47baf60" />
+
