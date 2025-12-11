@@ -26,15 +26,16 @@ const getResults = (req, res) => {
 };
 
 const submitSurvey = (req, res) => {
-  const { name, answers } = req.body;
+  const { name, age, answers } = req.body;
 
-  if (!name || !answers) {
+  if (!name || !age || !answers) {
     return res.status(400).json({ error: 'Не указано имя или ответы' });
   }
 
   const survey = {
     id: Date.now(),
     name,
+    age,
     answers,
     date: new Date().toLocaleString()
   };
