@@ -78,3 +78,4 @@ curl http://localhost:3000/api/results
 
 <img width="1440" height="900" alt="image" src="https://github.com/user-attachments/assets/4eea64cc-9058-42b3-ae4c-3027f47baf60" />
 
+<img width="589" height="126" alt="image" src="https://github.com/user-attachments/assets/31054f1c-dbf4-41e4-b745-ae45efa7d52a" />
