@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мини-опросник</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #6a89cc, #b8e994);
+    }
+
+    .container {
+      background: #ffffff;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    button {
+      background: #6a89cc;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+      border-radius: 6px;
+      margin-right: 10px;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #4a69bd;
+    }
+
+    #results {
+      margin-top: 30px;
+      border-top: 2px solid #ddd;
+      padding-top: 20px;
+    }
+
+    .survey-item {
+      background: #f0f3f5;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+    }
+    .disabled-btn {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Мини-опросник</h1>
+
+    <form id="surveyForm">
+      <div class="form-group">
+        <label>Ваше имя:</label>
+        <input type="text" id="name" required>
+      </div>
+
+      <div class="form-group">
+        <label>Ваш возраст:</label>
+        <input type="number" id="age" min="5" max="120" required>
+      </div>
+
+      <div id="questions"></div>
+
+      <button type="submit">Отправить</button>
+      <button type="button" id="showBtn" class="disabled-btn" onclick="showResults()">Показать результаты</button>
+    </form>
+
+    <div id="results"></div>
+  </div>
+
+  <script>
+    let surveyCompleted = false;
+
+    async function loadQuestions() {
+      const res = await fetch('/api/questions');
+      const data = await res.json();
+      const container = document.getElementById('questions');
+
+      data.questions.forEach(q => {
+        const div = document.createElement('div');
+        div.className = 'form-group';
+
+        let inputHTML = '';
+        if (q.type === 'time') {
+          inputHTML = `
+            <select id="q${q.id}" required>
+              <option value="">Выберите ответ</option>
+              <option value="Не более 2 часов">Не более 2 часов</option>
+              <option value="От 2 до 4 часов">От 2 до 4 часов</option>
+              <option value="От 4 до 8 часов">От 4 до 8 часов</option>
+              <option value="Более 8 часов">Более 8 часов</option>
+            </select>`;
+        } else if (q.type === 'yesno') {
+          inputHTML = `
+            <select id="q${q.id}" required>
+              <option value="">Выберите ответ</option>
+              <option value="Да">Да</option>
+              <option value="Нет">Нет</option>
+            </select>`;
+        } else if (q.type === 'lang') {
+          inputHTML = `
+            <select id="q${q.id}" required>
+              <option value="">Выберите ответ</option>
+              <option value="Python">Python</option>
+              <option value="Javascript">Javascript</option>
+              <option value="Rust">Rust</option>
+              <option value="C++">C++</option>
+              <option value="Golang">Golang</option>
+            </select>`;
+        } else if (q.type === 'number') {
+          inputHTML = `<input type="number" id="q${q.id}" required>`;
+        } else {
+          inputHTML = `<input type="text" id="q${q.id}" required>`;
+        }
+
+        div.innerHTML = `<label>${q.text}</label>${inputHTML}`;
+        container.appendChild(div);
+      });
+    }
+
+    document.getElementById('surveyForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value;
+      const age = document.getElementById('age').value;
+      const answers = {};
+
+      for (let i = 1; i <= 5; i++) {
+        answers[`q${i}`] = document.getElementById(`q${i}`).value;
+      }
+
+      const res = await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, age, answers })
+      });
+
+      if (res.ok) {
+        alert('Спасибо за участие!');
+        surveyCompleted = true;
+        document.getElementById('showBtn').classList.remove('disabled-btn');
+        e.target.reset();
+      }
+    });
+
+    async function showResults() {
+      if (!surveyCompleted) return;
+
+      const res = await fetch('/api/results');
+      const data = await res.json();
+      const container = document.getElementById('results');
+
+      container.innerHTML = `<h2>Результаты опроса (${data.count})</h2>`;
+
+      data.surveys.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'survey-item';
+        div.innerHTML = `
+          <strong>${s.name}</strong> (${s.date})<br>
+          Возраст: ${s.age}<br>
+          ${Object.entries(s.answers).map(([k, v]) => `${k}: ${v}`).join(', ')}`;
+        container.appendChild(div);
+      });
+    }
+
+    loadQuestions();
+  </script>
+</body>
+</html>
